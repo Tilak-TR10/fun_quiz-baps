@@ -1,13 +1,13 @@
 // js/config.js
 // Safe, resilient configuration. Works automatically with or without Firebase credentials!
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyDj9A9l_qGPou-GG2o49Kz5m2uCKFtfy3g",
+    authDomain: "fun-quiz-baps-9bc89.firebaseapp.com",
+    projectId: "fun-quiz-baps-9bc89",
+    storageBucket: "fun-quiz-baps-9bc89.firebasestorage.app",
+    messagingSenderId: "746973971137",
+    appId: "1:746973971137:web:7ce836d580cf561abc4a40",
+    measurementId: "G-H29HPG9RB1"
 };
 
 let db = null;
