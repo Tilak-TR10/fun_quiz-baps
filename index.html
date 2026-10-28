@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Host Dashboard - Live Quiz Arena</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- SheetJS to export leaderboard directly to Excel (.xlsx) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Confetti.js for celebratory animations -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="js/config.js"></script>
+</head>
+<body>
+
+  <!-- Ambient glowing background orbs for visual depth -->
+  <div class="bg-glow-orb orb-1"></div>
+  <div class="bg-glow-orb orb-2"></div>
+
+  <div class="host-container">
+    
+    <!-- Admin & QR Panel -->
+    <div class="card admin-panel">
+      <div class="pulse-badge">⚡ Live Arena Active</div>
+      <h2 style="font-size: 1.55rem; letter-spacing: 0.5px;">Scan to Join</h2>
+      <p style="opacity: 0.85; font-size: 0.9rem; margin-top: 4px;">Point camera to play instantly</p>
+
+      <div id="qrcode" class="qr-box"></div>
+      <p id="game-link" style="font-size: 0.78rem; opacity: 0.75; word-break: break-all; margin-bottom: 6px;"></p>
+
+      <!-- Admin Control Panel for Timer -->
+      <div class="admin-section">
+        <label for="timer-select">⚙ Admin Game Timer</label>
+        <div class="admin-control-row">
+          <select id="timer-select" class="admin-select" onchange="updateAdminTimer(this.value)">
+            <option value="30">30 Seconds (Blitz)</option>
+            <option value="60" selected>60 Seconds (1 Minute)</option>
+            <option value="90">90 Seconds (1.5 Minutes)</option>
+            <option value="120">120 Seconds (2 Minutes)</option>
+            <option value="180">180 Seconds (3 Minutes)</option>
+          </select>
+        </div>
+        <p style="font-size: 0.75rem; opacity: 0.8; margin-top: 8px;">
+          QR code embeds this round duration dynamically for all players.
+        </p>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 14px;">
+        <button class="btn-primary" onclick="openPlayerWindow()">
+          🎮 Open Player View (Test Game)
+        </button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-primary btn-excel" style="flex: 1;" onclick="exportLeaderboardToExcel()">
+            📥 Export to Excel (.xlsx)
+          </button>
+          <button class="btn-secondary" onclick="clearLeaderboard()">
+            🗑 Reset
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Leaderboard Panel -->
+    <div class="card">
+      <div class="leaderboard-header">
+        <div>
+          <h2 style="font-size: 1.65rem; display: flex; align-items: center; gap: 10px;">
+            🏆 Live Leaderboard
+          </h2>
+          <p style="color: var(--accent); font-size: 0.9rem; font-weight: 600; margin-top: 2px;">
+            <span id="player-count-badge">0</span> Players Recorded
+          </p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button class="btn-primary btn-excel" style="padding: 8px 14px; font-size: 0.88rem;" onclick="exportLeaderboardToExcel()">
+            📥 Download Excel
+          </button>
+          <div style="font-size: 0.82rem; background: rgba(0,0,0,0.35); padding: 7px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
+            Tiebreaker: <strong style="color: #ffd700;">Lowest time ranks higher</strong>
+          </div>
+        </div>
+      </div>
+
+      <table class="leaderboard-table">
+        <thead>
+          <tr>
+            <th style="width: 70px;">Rank</th>
+            <th>Player Full Name</th>
+            <th style="width: 170px; text-align: center;">Questions Solved</th>
+            <th style="width: 140px; text-align: right;">Time Taken</th>
+            <th style="width: 150px; text-align: right;">Finished At</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+          <tr>
+            <td colspan="5" style="text-align: center; opacity: 0.6; padding: 40px;">
+              Waiting for contestants to play...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script src="js/host.js"></script>
+</body>
+</html>

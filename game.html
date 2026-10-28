@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuizSprint Arena - Play</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Confetti.js -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- SheetJS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="js/config.js"></script>
+</head>
+<body>
+
+  <!-- Ambient background glowing orbs -->
+  <div class="bg-glow-orb orb-1"></div>
+  <div class="bg-glow-orb orb-2"></div>
+
+  <div class="player-container">
+
+    <!-- Screen 1: Registration with First, Middle, and Last Name -->
+    <div id="screen-register" class="card">
+      <div class="pulse-badge" style="align-self: flex-start;">🚀 Instant Challenge</div>
+      <h2 style="font-size: 1.65rem; margin-bottom: 6px;">Player Registration</h2>
+      <p style="opacity: 0.85; margin-bottom: 18px; font-size: 0.95rem;">
+        Enter your name below. Answer as many questions as you can before time expires!
+      </p>
+
+      <div class="name-grid">
+        <div>
+          <label for="first-name" style="font-weight: 600; font-size: 0.88rem; color: var(--accent);">First Name *</label>
+          <input type="text" id="first-name" class="input-field" placeholder="John" required autocomplete="given-name">
+        </div>
+        <div>
+          <label for="middle-name" style="font-weight: 600; font-size: 0.88rem; color: #ffca3a;">Middle Name / Initial</label>
+          <input type="text" id="middle-name" class="input-field" placeholder="T. (optional)" autocomplete="additional-name">
+        </div>
+        <div class="name-grid-full">
+          <label for="last-name" style="font-weight: 600; font-size: 0.88rem; color: var(--accent);">Last Name *</label>
+          <input type="text" id="last-name" class="input-field" placeholder="Duch" required autocomplete="family-name">
+        </div>
+      </div>
+
+      <div style="background: rgba(0,0,0,0.3); padding: 12px 16px; border-radius: 12px; margin-bottom: 20px; font-size: 0.88rem; border: 1px solid rgba(255,255,255,0.08);">
+        ⏱ <strong>Round Duration:</strong> <span id="configured-timer-label" style="color: var(--accent); font-weight: 700;">60 seconds</span>
+      </div>
+
+      <button id="start-btn" class="btn-primary" style="width: 100%; padding: 16px; font-size: 1.15rem;" onclick="validateAndStartGame()">
+        ⚡ Start Challenge
+      </button>
+    </div>
+
+    <!-- Screen 2: Active Kahoot Game -->
+    <div id="screen-game" style="display: none;">
+      <div class="player-meta">
+        <div class="score-pill">Solved: <span id="solved-count" style="color: var(--accent); font-weight: 800;">0</span></div>
+        <div class="timer-pill" id="timer-display">⏱ 60s</div>
+      </div>
+
+      <div class="question-card">
+        <div class="difficulty-badge" id="diff-tag">Level: Easy</div>
+        <div id="q-text">Loading question...</div>
+      </div>
+
+      <div class="options-grid">
+        <button class="btn-kahoot opt-a" onclick="submitAnswer('A')">
+          <span class="symbol">▲</span>
+          <span id="opt-a-text">Option A</span>
+        </button>
+        <button class="btn-kahoot opt-b" onclick="submitAnswer('B')">
+          <span class="symbol">◆</span>
+          <span id="opt-b-text">Option B</span>
+        </button>
+        <button class="btn-kahoot opt-c" onclick="submitAnswer('C')">
+          <span class="symbol">●</span>
+          <span id="opt-c-text">Option C</span>
+        </button>
+        <button class="btn-kahoot opt-d" onclick="submitAnswer('D')">
+          <span class="symbol">■</span>
+          <span id="opt-d-text">Option D</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Screen 3: Game Over Screen with Confetti -->
+    <div id="screen-gameover" class="card" style="display: none; text-align: center;">
+      <div style="font-size: 3.5rem; margin-bottom: 6px;">🎉</div>
+      <h2 style="font-size: 1.8rem;">Time's Up!</h2>
+      <p style="opacity: 0.85; margin-top: 4px;" id="gameover-player-name">Great effort!</p>
+
+      <div style="background: rgba(255,255,255,0.08); padding: 22px; border-radius: 16px; margin: 22px 0;">
+        <div style="font-size: 0.9rem; opacity: 0.85;">Total Questions Solved:</div>
+        <div id="final-score" style="font-size: 3.4rem; font-weight: 900; color: #ffd700; margin: 6px 0;">0</div>
+        <div id="final-time" style="font-size: 0.95rem; opacity: 0.9;">Time taken: 60s</div>
+      </div>
+
+      <p style="font-size: 0.9rem; opacity: 0.85; margin-bottom: 22px;">
+        Your score is now locked in the host leaderboard and Excel registry!
+      </p>
+
+      <button class="btn-primary" style="width: 100%;" onclick="location.reload()">
+        🏠 Return to Home
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Redundancy Warning Modal (Polite Deny) -->
+  <div id="redundancy-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <div style="font-size: 2.8rem; margin-bottom: 10px;">👋</div>
+      <h3 style="font-size: 1.45rem; margin-bottom: 10px; color: #ffca3a;">Round Already Recorded!</h3>
+      <p id="redundancy-message" style="opacity: 0.9; font-size: 0.98rem; line-height: 1.5; margin-bottom: 22px;">
+        <!-- Filled dynamically -->
+      </p>
+      <button class="btn-primary" style="width: 100%;" onclick="closeRedundancyModal()">
+        Understood / Check Leaderboard
+      </button>
+    </div>
+  </div>
+
+  <script src="js/game.js"></script>
+</body>
+</html>
