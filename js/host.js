@@ -174,14 +174,20 @@ function exportLeaderboardToExcel() {
 }
 
 function clearLeaderboard() {
-  if (confirm("Reset the entire leaderboard? This will clear all stored player records.")) {
+  if (confirm("Reset the entire leaderboard? This will clear all records and allow players to play again.")) {
+    // 1. Clear Firebase
     if (isFirebaseActive && db) {
       db.ref('leaderboard').remove();
-    } else {
-      localStorage.removeItem('quiz_leaderboard');
-      currentLeaderboard = [];
-      renderLeaderboard();
-      if (broadcast) broadcast.postMessage({ type: 'RESET' });
+      db.ref('settings/lastReset').set(Date.now()); // Marks reset timestamp
+    }
+    
+    // 2. Clear Local Storage
+    localStorage.removeItem('quiz_leaderboard');
+    currentLeaderboard = [];
+    renderLeaderboard();
+    
+    if (broadcast) {
+      broadcast.postMessage({ type: 'RESET' });
     }
   }
 }
