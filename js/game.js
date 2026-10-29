@@ -83,9 +83,24 @@ function getNormalizedKey(f, m, l) {
   return full.replace(/[.#$\[\]\/]/g, '_');
 }
 
-// Check if player has already played in Firebase or LocalStorage
+// Check if player has already played
 async function checkIfPlayerAlreadyPlayed(normalizedKey) {
-  // Check LocalStorage first
+  // 1. If Firebase is active, it is the SINGLE source of truth!
+  if (isFirebaseActive && db) {
+    try {
+      const snap = await db.ref('leaderboard/' + normalizedKey).once('value');
+      if (snap.exists()) {
+        return snap.val();
+      } else {
+        // If it doesn't exist in Firebase (e.g. Host clicked Reset), allow them to play!
+        return null;
+      }
+    } catch (e) {
+      console.error("Firebase lookup error:", e);
+    }
+  }
+
+  // 2. Only check LocalStorage if Firebase is NOT active
   try {
     const localRaw = localStorage.getItem('quiz_leaderboard');
     if (localRaw) {
@@ -93,20 +108,8 @@ async function checkIfPlayerAlreadyPlayed(normalizedKey) {
       const match = list.find(p => p.normalizedKey === normalizedKey || p.name.toLowerCase().replace(/\s+/g, ' ').trim() === normalizedKey.replace(/_/g, ' '));
       if (match) return match;
     }
-  } catch(e) {
+  } catch (e) {
     console.error(e);
-  }
-
-  // Check Firebase if active
-  if (isFirebaseActive && db) {
-    try {
-      const snap = await db.ref('leaderboard/' + normalizedKey).once('value');
-      if (snap.exists()) {
-        return snap.val();
-      }
-    } catch(e) {
-      console.error(e);
-    }
   }
 
   return null;
